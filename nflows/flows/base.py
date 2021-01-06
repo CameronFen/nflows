@@ -37,12 +37,19 @@ class Flow(Distribution):
     def _log_prob(self, inputs, context):
         embedded_context = self._embedding_net(context)
         noise, logabsdet = self._transform(inputs, context=embedded_context)
-        log_prob = self._distribution.log_prob(noise, context=embedded_context)
+        if context == None:
+           log_prob = self._distribution.log_prob(noise).sum(axis = 1)
+        else:
+          log_prob = self._distribution.log_prob(noise, context=embedded_context)
         return log_prob + logabsdet
+
 
     def _sample(self, num_samples, context):
         embedded_context = self._embedding_net(context)
-        noise = self._distribution.sample(num_samples, context=embedded_context)
+        if context == None:
+          noise = self._distribution.sample([num_samples])
+        else:
+          noise = self._distribution.sample(num_samples, context=embedded_context)
 
         if embedded_context is not None:
             # Merge the context dimension with sample dimension in order to apply the transform.
